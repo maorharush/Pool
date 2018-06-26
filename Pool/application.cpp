@@ -1,6 +1,12 @@
 #include <GL/glut.h>
 #include<math.h>
-int rot_x = 90, rot_z = 90;
+
+#define KEY_UP 'i'
+#define KEY_DOWN 'k'
+#define KEY_LEFT 'j'
+#define KEY_RIGHT 'l'
+
+int rot_x = 90, rot_z = 90, rot_y=90;
 float xt = 0.0, yt = 0.0, zt = 0.0;
 double color1 = 0.3, color2 = 0.0, color3 = 0.3;
 const float DEG2RAD = 3.14159 / 180;
@@ -145,7 +151,7 @@ void leg() {
 }
 void drawCircle()
 {
-	double x1 = 90, xt = 5 * cos(90.0 / 180), yt = 5 * sin(90.0 / 180), r, a, x, y;
+	double x1 = 90, xt = 5 * cos(90.0 / 180), yt = 5 * sin(90.0 / 180), a, x, y;
 	glBegin(GL_POLYGON); /// glBegin(GL_LINE_LOOP);
 	for (int i = 0; i <= 720; i++) {
 		a = 3.14 * i;
@@ -158,13 +164,23 @@ void drawCircle()
 
 void keyboard(unsigned char key, int x, int y)
 {
-	if (key == 27) exit(1);
-	if (key == 'r') {
+	if (key == 02) exit(1);
+	//changing rotation keystroks and adding new one
+	if (key == KEY_UP) {
 		rot_z += 5;
 		rot_z %= 360;
 	}
-	if (key == 't') {
+	if (key == KEY_RIGHT) {
 		rot_x += 5;
+		rot_z %= 360;
+	}
+
+	if (key == KEY_DOWN) {//top
+		rot_z -= 5;
+		rot_z %= 360;
+	}
+	if (key == KEY_LEFT) {//right
+		rot_x -= 5;
 		rot_x %= 360;
 	}
 	if (key == '0')
@@ -199,6 +215,7 @@ void draw()
 		GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	glTranslatef(0, 0, -15);
+	
 	glRotatef(rot_x, 0, 1, 0);
 	glRotatef(rot_z, 0, 0, 1);
 	/*********/
@@ -358,5 +375,6 @@ int main(int argc, char *argv[])
 	our_balls[9].red = 0.58; our_balls[9].green = 0; our_balls[9].blue = 0.83;
 	init();
 	glutIdleFunc(idle);
-	glutMainLoop();							// Start the main event loop
+	glutMainLoop();	
+	// Start the main event loop
 }
