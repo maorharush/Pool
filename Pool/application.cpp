@@ -1,7 +1,6 @@
 #include <GL/glut.h>
 #include<math.h>
 
-
 #define KEY_UP 'i'
 #define KEY_DOWN 'k'
 #define KEY_LEFT 'j'
@@ -11,7 +10,7 @@ int rot_x = 90, rot_z = 90, rot_y=90;
 float xt = 0.0, yt = 0.0, zt = 0.0;
 double color1 = 0.3, color2 = 0.0, color3 = 0.3;
 const float DEG2RAD = 3.14159 / 180;
-struct Ball
+struct kadur
 {
 	double x;
 	double y;
@@ -22,8 +21,8 @@ struct Ball
 	bool active;
 	double red, green, blue;
 };
-Ball ball[10];  //drawball
-void drawBall(Ball ball) {
+kadur our_balls[10];  //drawball
+void drawBall(kadur ball) {
 	glTranslatef(ball.x, 0, ball.z);
 	glutSolidSphere(0.3, 32, 32);
 	glTranslatef(-ball.x, 0, -ball.z);
@@ -162,16 +161,7 @@ void drawCircle()
 	}
 	glEnd();
 }
-void changeBallControl(int ballNum) {
-	int i;
-	drawAllBalls();
-	ball[ballNum].red = 0;
-	ball[ballNum].blue = 0;
-	ball[ballNum].green = 0;
-	ball[ballNum].active = true;
-	for (i = 0; i < 10; i++)if (i != ballNum) ball[i].active = false; 
-	
-}
+
 void keyboard(unsigned char key, int x, int y)
 {
 	if (key == 02) exit(1);
@@ -193,79 +183,30 @@ void keyboard(unsigned char key, int x, int y)
 		rot_x -= 5;
 		rot_x %= 360;
 	}
+	if (key == '0')
+	{
+		our_balls[0].active = true;
+		our_balls[1].active = false;
+		our_balls[2].active = false;
+		our_balls[0].red = 1;
+		our_balls[0].green = 1;
+		our_balls[0].blue = 1;
 
-	if (key >= '0' && key <= '9') {
-		changeBallControl(key-48);
 	}
 
 	if (key == 'w')
 	{
 		for (int i = 0; i<10; i++) {
-			if (ball[i].active == true)
+			if (our_balls[i].active == true)
 			{
-				ball[i].f1 = true;
-				ball[i].f2 = false;
-				ball[i].f3 = false;
-				ball[i].f4 = false;
+				our_balls[i].f1 = true;
+				our_balls[i].f2 = false;
+				our_balls[i].f3 = false;
+				our_balls[i].f4 = false;
 			}
 		}
 	}
 
-}
-void repaintBalls() {
-	ball[0].z = 2;
-	ball[0].red = 0.58; ball[0].green = 0; ball[0].blue = 0.83;
-	ball[1].z = 3;
-	ball[1].red = 0.64; ball[1].green = 0.16; ball[1].blue = 0.16;
-	ball[2].z = 6;
-	ball[2].red = 0.16; ball[2].green = 0.36; ball[2].blue = 0.8;
-	ball[3].z = 5; ball[3].x = -5;
-	ball[3].red = 0.9; ball[3].green = 0.9; ball[3].blue = 0.9;
-	ball[4].z = 4.8; ball[4].x = 5;
-	ball[4].red = 0.31; ball[4].green = 0.58; ball[4].blue = 0.80;
-	ball[5].z = 2.5; ball[5].x = 4;
-	ball[5].red = 0.51; ball[5].green = 0.51; ball[5].blue = 0.51;
-	ball[6].z = 3; ball[6].x = -4;
-	ball[6].red = 0.51; ball[6].green = 0.51; ball[6].blue = 0.51;
-	ball[7].z = 5; ball[7].x = -4.3;
-	ball[7].red = 1; ball[7].green = 0.5; ball[7].blue = 0.0;
-	ball[8].z = 6.5; ball[8].x = -7;
-	ball[8].red = 0.64; ball[8].green = 0.16; ball[8].blue = 0.16;
-	ball[9].z = 1; ball[9].x = -8;
-	ball[9].red = 0.58; ball[9].green = 0; ball[9].blue = 0.83;
-}
-void drawAllBalls()
-{
-	repaintBalls();
-	////////////////////////////////////////////balls:
-	/* 1 */ glColor3f(ball[0].red, ball[0].green, ball[0].blue);
-	drawBall(ball[0]);
-	/* 2 */   glColor3f(ball[1].red, ball[1].green, ball[1].blue);
-	drawBall(ball[1]);
-	glColor3f(ball[2].red, ball[2].green, ball[2].blue);
-	drawBall(ball[2]);
-
-	//fourth ball - orange
-	glColor3f(ball[3].red, ball[3].green, ball[3].blue);
-	drawBall(ball[3]);
-	//fifth ball - blue
-	glColor3f(ball[4].red, ball[4].green, ball[4].blue);
-	drawBall(ball[4]);
-	//sixth ball - gray
-	glColor3f(ball[5].red, ball[5].green, ball[5].blue);
-	drawBall(ball[5]);
-	//seventh ball - gray
-	glColor3f(ball[6].red, ball[6].green, ball[6].blue);
-	drawBall(ball[6]);
-	//eighth ball - orange
-	glColor3f(ball[7].red, ball[7].green, ball[7].blue);
-	drawBall(ball[7]);
-	//ninth ball - red
-	glColor3f(ball[8].red, ball[8].green, ball[8].blue);
-	drawBall(ball[8]);
-	//tenth ball - purple
-	glColor3f(ball[9].red, ball[9].green, ball[9].blue);
-	drawBall(ball[9]);
 }
 
 void draw()
@@ -280,7 +221,7 @@ void draw()
 	/*********/
 	for (int i = 0; i < 10; i++)
 	{
-		ball[i].v = 0.000350;
+		our_balls[i].v = 0.000350;
 	}
 	glBegin(GL_QUADS);
 	// Floor
@@ -334,8 +275,35 @@ void draw()
 	glTranslatef(2, 0.1, -6.2);
 	glColor3f(0, 0, 0);
 	drawCircle();
+	////////////////////////////////////////////balls:
+	/* 1 */ glColor3f(our_balls[0].red, our_balls[0].green, our_balls[0].blue);
+	drawBall(our_balls[0]);
+	/* 2 */   glColor3f(our_balls[1].red, our_balls[1].green, our_balls[1].blue);
+	drawBall(our_balls[1]);
+	glColor3f(our_balls[2].red, our_balls[2].green, our_balls[2].blue);
+	drawBall(our_balls[2]);
 
-	drawAllBalls();
+	//fourth ball - orange
+	glColor3f(our_balls[3].red, our_balls[3].green, our_balls[3].blue);
+	drawBall(our_balls[3]);
+	//fifth ball - blue
+	glColor3f(our_balls[4].red, our_balls[4].green, our_balls[4].blue);
+	drawBall(our_balls[4]);
+	//sixth ball - gray
+	glColor3f(our_balls[5].red, our_balls[5].green, our_balls[5].blue);
+	drawBall(our_balls[5]);
+	//seventh ball - gray
+	glColor3f(our_balls[6].red, our_balls[6].green, our_balls[6].blue);
+	drawBall(our_balls[6]);
+	//eighth ball - orange
+	glColor3f(our_balls[7].red, our_balls[7].green, our_balls[7].blue);
+	drawBall(our_balls[7]);
+	//ninth ball - red
+	glColor3f(our_balls[8].red, our_balls[8].green, our_balls[8].blue);
+	drawBall(our_balls[8]);
+	//tenth ball - purple
+	glColor3f(our_balls[9].red, our_balls[9].green, our_balls[9].blue);
+	drawBall(our_balls[9]);
 
 
 
@@ -344,14 +312,14 @@ void draw()
 void idle()
 {
 	for (int i = 0; i < 10; i++) {
-		if (ball[i].f1 == true)
-			ball[i].z += ball[i].v;
-		else if (ball[i].f2 == true)
-			ball[i].z -= ball[i].v;
-		else if (true && ball[i].f3)
-			ball[i].x -= ball[i].v;
-		else if (ball[i].f4 == true)
-			ball[i].x += ball[i].v;
+		if (our_balls[i].f1 == true)
+			our_balls[i].z += our_balls[i].v;
+		else if (our_balls[i].f2 == true)
+			our_balls[i].z -= our_balls[i].v;
+		else if (true && our_balls[i].f3)
+			our_balls[i].x -= our_balls[i].v;
+		else if (our_balls[i].f4 == true)
+			our_balls[i].x += our_balls[i].v;
 	}
 	draw();
 }
@@ -385,7 +353,26 @@ int main(int argc, char *argv[])
 	glutDisplayFunc(draw);
 	// Set the display function
 	glutKeyboardFunc(keyboard);					// Set the keyboard function
-	
+	our_balls[0].z = 2;
+	our_balls[0].red = 0.58; our_balls[0].green = 0; our_balls[0].blue = 0.83;
+	our_balls[1].z = 3;
+	our_balls[1].red = 0.64; our_balls[1].green = 0.16; our_balls[1].blue = 0.16;
+	our_balls[2].z = 6;
+	our_balls[2].red = 0.16; our_balls[2].green = 0.36; our_balls[2].blue = 0.8;
+	our_balls[3].z = 5; our_balls[3].x = -5;
+	our_balls[3].red = 0.9; our_balls[3].green = 0.9; our_balls[3].blue = 0.9;
+	our_balls[4].z = 4.8; our_balls[4].x = 5;
+	our_balls[4].red = 0.31; our_balls[4].green = 0.58; our_balls[4].blue = 0.80;
+	our_balls[5].z = 2.5; our_balls[5].x = 4;
+	our_balls[5].red = 0.51; our_balls[5].green = 0.51; our_balls[5].blue = 0.51;
+	our_balls[6].z = 3; our_balls[6].x = -4;
+	our_balls[6].red = 0.51; our_balls[6].green = 0.51; our_balls[6].blue = 0.51;
+	our_balls[7].z = 5; our_balls[7].x = -4.3;
+	our_balls[7].red = 1; our_balls[7].green = 0.5; our_balls[7].blue = 0.0;
+	our_balls[8].z = 6.5; our_balls[8].x = -7;
+	our_balls[8].red = 0.64; our_balls[8].green = 0.16; our_balls[8].blue = 0.16;
+	our_balls[9].z = 1; our_balls[9].x = -8;
+	our_balls[9].red = 0.58; our_balls[9].green = 0; our_balls[9].blue = 0.83;
 	init();
 	glutIdleFunc(idle);
 	glutMainLoop();	
