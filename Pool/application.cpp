@@ -2,10 +2,14 @@
 #include<math.h>
 
 
-#define KEY_UP 'i'
-#define KEY_DOWN 'k'
-#define KEY_LEFT 'j'
-#define KEY_RIGHT 'l'
+#define CAMERA_UP 'i'
+#define CAMERA_DOWN 'k'
+#define CAMERA_LEFT 'j'
+#define CAMERA_RIGHT 'l'
+#define KEY_UP 'w'
+#define KEY_DOWN 's'
+#define KEY_LEFT 'a'
+#define KEY_RIGHT 'd'
 
 int rot_x = 90, rot_z = 90, rot_y=90;
 float xt = 0.0, yt = 0.0, zt = 0.0;
@@ -162,56 +166,6 @@ void drawCircle()
 	}
 	glEnd();
 }
-void changeBallControl(int ballNum) {
-	int i;
-	drawAllBalls();
-	ball[ballNum].red = 0;
-	ball[ballNum].blue = 0;
-	ball[ballNum].green = 0;
-	ball[ballNum].active = true;
-	for (i = 0; i < 10; i++)if (i != ballNum) ball[i].active = false; 
-	
-}
-void keyboard(unsigned char key, int x, int y)
-{
-	if (key == 02) exit(1);
-	//changing rotation keystroks and adding new one
-	if (key == KEY_UP) {
-		rot_z += 5;
-		rot_z %= 360;
-	}
-	if (key == KEY_RIGHT) {
-		rot_x += 5;
-		rot_z %= 360;
-	}
-
-	if (key == KEY_DOWN) {//top
-		rot_z -= 5;
-		rot_z %= 360;
-	}
-	if (key == KEY_LEFT) {//right
-		rot_x -= 5;
-		rot_x %= 360;
-	}
-
-	if (key >= '0' && key <= '9') {
-		changeBallControl(key-48);
-	}
-
-	if (key == 'w')
-	{
-		for (int i = 0; i<10; i++) {
-			if (ball[i].active == true)
-			{
-				ball[i].f1 = true;
-				ball[i].f2 = false;
-				ball[i].f3 = false;
-				ball[i].f4 = false;
-			}
-		}
-	}
-
-}
 void repaintBalls() {
 	ball[0].z = 2;
 	ball[0].red = 0.58; ball[0].green = 0; ball[0].blue = 0.83;
@@ -267,6 +221,9 @@ void drawAllBalls()
 	glColor3f(ball[9].red, ball[9].green, ball[9].blue);
 	drawBall(ball[9]);
 }
+
+
+
 
 void draw()
 {
@@ -341,6 +298,19 @@ void draw()
 
 	glutSwapBuffers();			// display the output
 }
+void changeBallControl(int ballNum) {
+	int i;
+	//repaintBalls();
+	draw();
+	ball[ballNum].red = 1;
+	ball[ballNum].blue = 1;
+	ball[ballNum].green = 1;
+	ball[ballNum].active = true;
+	for (i = 0; i < 10; i++)if (i != ballNum) ball[i].active = false;
+
+
+}
+
 void idle()
 {
 	for (int i = 0; i < 10; i++) {
@@ -367,14 +337,61 @@ void init()
 	GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_ambdif);	// set both amb and diff components
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);		// set specular
+	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);			// set specular
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);		// set shininess
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);		// set light "position", in this case direction
-	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);		// active material changes by glColor3f(..)
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);			// set light "position", in this case direction
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);			// active material changes by glColor3f(..)
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_DEPTH_TEST);
+}
+void keyboard(unsigned char key, int x, int y)
+{
+	if (key == 02) exit(1);
+	//changing rotation keystroks and adding new one
+	if (key == CAMERA_UP) {
+		rot_z += 5;
+		rot_z %= 360;
+	}
+	if (key == CAMERA_RIGHT) {
+		rot_x += 5;
+		rot_z %= 360;
+	}
+
+	if (key == CAMERA_DOWN) {
+		rot_z -= 5;
+		rot_z %= 360;
+	}
+	if (key == CAMERA_LEFT) {
+		rot_x -= 5;
+		rot_x %= 360;
+	}
+
+	if (key >= '0' && key <= '9') {
+		changeBallControl(key - 48);
+	}
+	if (key == KEY_UP) {
+		for (int i = 0; i<10; i++) {
+			if (ball[i].active == true)
+			{
+				ball[i].f1 = true;
+				ball[i].f2 = false;
+				ball[i].f3 = false;
+				ball[i].f4 = false;
+			}
+		}
+	}
+	if (key == KEY_DOWN) {
+
+	}
+	if (key == KEY_LEFT) {
+
+	}
+	if (key == KEY_RIGHT) {
+		
+	}
+	glutPostRedisplay();
 }
 int main(int argc, char *argv[])
 {
