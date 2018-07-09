@@ -64,7 +64,7 @@ void border() {
 }
 
 //sides
-void border2() {
+void borderSides() {
 	glBegin(GL_QUADS);
 	glNormal3f(0, 0, 1);
 	glVertex3f(-5, 0, 5);
@@ -315,9 +315,9 @@ void draw()
 	glTranslatef(xt - 10, yt, zt);
 	border();
 	glTranslatef(xt + 5, yt, zt);
-	border2();
+	borderSides();
 	glTranslatef(xt, yt, zt - 9.5);
-	border2();
+	borderSides();
 	glTranslatef(xt + 1, yt, zt + 7.5);
 	border3();
 	glTranslatef(xt - 6.5, yt, zt);
