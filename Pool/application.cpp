@@ -1,7 +1,7 @@
 #include <GL/glut.h>
 #include <math.h>
 #include <stdio.h>
-#include "application.h"
+
 
 
 #define CAMERA_UP 'i'
