@@ -1,5 +1,7 @@
 #include <GL/glut.h>
 #include <math.h>
+#include <stdio.h>
+#include "application.h"
 
 
 #define CAMERA_UP 'i'
@@ -11,8 +13,9 @@
 #define KEY_LEFT 'a'
 #define KEY_RIGHT 'd'
 
-int rot_x = 90, rot_z = 90, rot_y = 90, prevBallDetailsIndex = -1;
+int rot_x = 90, rot_z = 90, rot_y = 90, curBallIndex = -1;
 float xt = 0.0, yt = 0.0, zt = 0.0;
+char printContainer[100],*printPointer;
 double color1 = 0.3, color2 = 0.0, color3 = 0.3;
 const float DEG2RAD = 3.14159 / 180;
 struct Ball
@@ -29,6 +32,7 @@ Ball ball[10];  //drawball
 Ball ballForRefrence; //we'll keep the focused ball detail before changing them
 
 void drawBall(Ball ball) {
+	glColor3f(ball.red, ball.green, ball.blue);
 	glTranslatef(ball.x, 0, ball.z);
 	glutSolidSphere(0.3, 32, 32);
 	glTranslatef(-ball.x, 0, -ball.z);
@@ -166,10 +170,10 @@ void drawCircle()
 	}
 	glEnd();
 }
-void repaintBalls() {
-	ball[0].z = 2; ball[0].red = 0.58; ball[0].green = 0; ball[0].blue = 0.83;
-	ball[1].z = 3; ball[1].red = 0.64; ball[1].green = 0.16; ball[1].blue = 0.16;
-	ball[2].z = 6; ball[2].red = 0.16; ball[2].green = 0.36; ball[2].blue = 0.8;
+void initBallParams() {
+	ball[0].z = 2; ball[0].x=2; ball[0].red = 0.58; ball[0].green = 0; ball[0].blue = 0.83;
+	ball[1].z = 3; ball[1].x=3; ball[1].red = 0.64; ball[1].green = 0.16; ball[1].blue = 0.16;
+	ball[2].z = 6; ball[1].x = 1; ball[2].red = 0.16; ball[2].green = 0.36; ball[2].blue = 0.8;
 	ball[3].z = 5; ball[3].x = -5; ball[3].red = 0.9; ball[3].green = 0.9; ball[3].blue = 0.9;
 	ball[4].z = 4.8; ball[4].x = 5; ball[4].red = 0.31; ball[4].green = 0.58; ball[4].blue = 0.80;
 	ball[5].z = 2.5; ball[5].x = 4; ball[5].red = 0.51; ball[5].green = 0.51; ball[5].blue = 0.51;
@@ -177,29 +181,31 @@ void repaintBalls() {
 	ball[7].z = 5; ball[7].x = -4.3; ball[7].red = 1; ball[7].green = 0.5; ball[7].blue = 0.0;
 	ball[8].z = 6.5; ball[8].x = -7; ball[8].red = 0.64; ball[8].green = 0.16; ball[8].blue = 0.16;
 	ball[9].z = 1; ball[9].x = -8; ball[9].red = 0.58; ball[9].green = 0; ball[9].blue = 0.83;
+	ball[curBallIndex].red = 1;
+	ball[curBallIndex].blue = 1;
+	ball[curBallIndex].green = 1;
+	for (int i = 0; i < 10; i++)
+	{
+		ball[i].speed = 0.009;
+	}
 }
-void drawAllBalls()
-{
+void drawAllBalls(){
 	int i;
 	for (i = 0; i <= 10; i++) {
-		if (i != prevBallDetailsIndex) {
-			glColor3f(ball[i].red, ball[i].green, ball[i].blue);
-		}
-			drawBall(ball[i]);
+		drawBall(ball[i]);
 	}
 }
 void draw()
 {
-	int i;
+	//int i;
 	glClear(GL_COLOR_BUFFER_BIT |
 		GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	glTranslatef(0, 0, -15);
-
 	glRotatef(rot_x, 0, 1, 0);
 	glRotatef(rot_z, 0, 0, 1);
 	/*********/
-
+#pragma region decorateEnvoierment
 	glBegin(GL_QUADS);
 	// Floor
 	glColor3f(0.15, 0.23, 0.23);
@@ -252,24 +258,27 @@ void draw()
 	glTranslatef(2, 0.1, -6.2);
 	glColor3f(0, 0, 0);
 	drawCircle();
-
-	
-	
+#pragma endregion
+	//print the selected ball
+	sprintf_s(printContainer,"Selected ball : %d", (char)curBallIndex);
+	printPointer = printContainer;
+	glColor3f(1.0, 1.0, 1.0);
+	glRasterPos3f(0, 5, 3);
+	do glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *printPointer); while (*(++printPointer));
 	drawAllBalls();
-
-
 	glutSwapBuffers();			// display the output
 }
 void changeBallControl(int ballNum) {
 
-	if (prevBallDetailsIndex >= 0) {
-		ball[prevBallDetailsIndex].blue = ballForRefrence.blue;
-		ball[prevBallDetailsIndex].green = ballForRefrence.green;
-		ball[prevBallDetailsIndex].red = ballForRefrence.red;
-		ball[prevBallDetailsIndex].active = false;
+	if (curBallIndex >= 0) {
+		ball[curBallIndex].blue = ballForRefrence.blue;
+		ball[curBallIndex].blue = ballForRefrence.blue;
+		ball[curBallIndex].green = ballForRefrence.green;
+		ball[curBallIndex].red = ballForRefrence.red;
+		ball[curBallIndex].active = false;
 	}
 	ballForRefrence = ball[ballNum];
-	prevBallDetailsIndex = ballNum;
+	curBallIndex = ballNum;
 	ball[ballNum].red = 1;
 	ball[ballNum].blue = 1;
 	ball[ballNum].green = 1;
@@ -288,8 +297,8 @@ void idle() {
 		else if (ball[i].down == true)
 			ball[i].x -= ball[i].speed;
 	}
-	draw();
-	//glutPostRedisplay();
+	//draw();
+	glutPostRedisplay();
 }
 void init()
 {
@@ -311,14 +320,13 @@ void init()
 	glEnable(GL_LIGHT0);
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_DEPTH_TEST);
-	repaintBalls();
-	for (int i = 0; i < 10; i++) //dengerous method, probably giving all ball const speed
-	{
-		ball[i].speed = 0.009;
-	}
+	
+	
+	
 }
 void keyboard(unsigned char key, int x, int y)
 {
+	
 	if (key == 02) exit(1);
 	//changing rotation keystroks and adding new one
 	if (key == CAMERA_UP) {
@@ -386,7 +394,7 @@ void keyboard(unsigned char key, int x, int y)
 			}
 		}
 	}
-	glutPostRedisplay();
+	//glutPostRedisplay();
 
 	//draw();
 }
@@ -399,7 +407,7 @@ int main(int argc, char *argv[])
 	glutDisplayFunc(draw);// Set the display function
 	glutKeyboardFunc(keyboard);// Set the keyboard function
 	glutIdleFunc(idle);
+	initBallParams();
 	init();
-	glutMainLoop();
-	// Start the main event loop
+	glutMainLoop();// Start the main event loop
 }
