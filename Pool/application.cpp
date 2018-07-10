@@ -1,8 +1,7 @@
 #include <GL/glut.h>
 #include <math.h>
 #include <stdio.h>
-
-
+#pragma region defines section
 
 #define CAMERA_UP 'i'
 #define CAMERA_DOWN 'k'
@@ -12,7 +11,7 @@
 #define KEY_DOWN 's'
 #define KEY_LEFT 'a'
 #define KEY_RIGHT 'd'
-
+#pragma endregion
 int rot_x = 90, rot_z = 90, rot_y = 90, curBallIndex = -1;
 float xt = 0.0, yt = 0.0, zt = 0.0;
 char printContainer[100],*printPointer;
@@ -20,16 +19,11 @@ double color1 = 0.3, color2 = 0.0, color3 = 0.3;
 const float DEG2RAD = 3.14159 / 180;
 struct Ball
 {
-	double x;
-	double y;
-	double z;
-	double speed;
-	bool left, right, up, down;
-	bool active;
-	double red, green, blue;
+	double x,y,z,speed,red,green,blue,blue;
+	bool left, right, up, down,active;
 };
-Ball ball[10];  //drawball
-Ball ballForRefrence; //we'll keep the focused ball detail before changing them
+Ball ball[10];  
+Ball ballForRefrence; //we'll keep the focused ball details here before changing them
 
 void drawBall(Ball ball) {
 	glColor3f(ball.red, ball.green, ball.blue);
@@ -181,9 +175,6 @@ void initBallParams() {
 	ball[7].z = 5; ball[7].x = -4.3; ball[7].red = 1; ball[7].green = 0.5; ball[7].blue = 0.0;
 	ball[8].z = 6.5; ball[8].x = -7; ball[8].red = 0.64; ball[8].green = 0.16; ball[8].blue = 0.16;
 	ball[9].z = 1; ball[9].x = -8; ball[9].red = 0.58; ball[9].green = 0; ball[9].blue = 0.83;
-	ball[curBallIndex].red = 1;
-	ball[curBallIndex].blue = 1;
-	ball[curBallIndex].green = 1;
 	for (int i = 0; i < 10; i++)
 	{
 		ball[i].speed = 0.009;
@@ -192,7 +183,9 @@ void initBallParams() {
 void drawAllBalls(){
 	int i;
 	for (i = 0; i <= 10; i++) {
-		drawBall(ball[i]);
+		
+			drawBall(ball[i]);
+	
 	}
 }
 void draw()
@@ -269,7 +262,6 @@ void draw()
 	glutSwapBuffers();			// display the output
 }
 void changeBallControl(int ballNum) {
-
 	if (curBallIndex >= 0) {
 		ball[curBallIndex].blue = ballForRefrence.blue;
 		ball[curBallIndex].blue = ballForRefrence.blue;
@@ -298,6 +290,7 @@ void idle() {
 			ball[i].x -= ball[i].speed;
 	}
 	//draw();
+	
 	glutPostRedisplay();
 }
 void init()
@@ -320,9 +313,6 @@ void init()
 	glEnable(GL_LIGHT0);
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_DEPTH_TEST);
-	
-	
-	
 }
 void keyboard(unsigned char key, int x, int y)
 {
@@ -377,7 +367,7 @@ void keyboard(unsigned char key, int x, int y)
 			if (ball[i].active == true)
 			{
 				ball[i].left = true;
-				ball[i].right = false;
+ 				ball[i].right = false;
 				ball[i].up = false;
 				ball[i].down = false;
 			}
@@ -396,7 +386,7 @@ void keyboard(unsigned char key, int x, int y)
 	}
 	//glutPostRedisplay();
 
-	//draw();
+	draw();
 }
 int main(int argc, char *argv[])
 {
