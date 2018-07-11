@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <GL/glut.h>
 #include <math.h>
 #include <stdio.h>
@@ -16,7 +17,7 @@
 int rot_x = 90, rot_z = 90, rot_y = 90, curBallIndex = -1;
 float xt = 0.0, yt = 0.0, zt = 0.0;
 char printContainer[100],*printPointer;
-double x1 = 90, r;
+double x1 = 90, r,angle=0.0;
 //const float DEG2RAD = 3.14159 / 180;
 struct Ball
 {
@@ -292,6 +293,8 @@ void idle() {
 	}
 	//draw();
 	
+	
+	
 	glutPostRedisplay();
 }
 void init()
@@ -394,13 +397,18 @@ void keyboard(unsigned char key, int x, int y)
 				ball[i].z = 5 * sin(r / 180);
 				x1 = x1 + 10;
 				printf("\n%lf %lf r = %lf x = %lf", xt, yt, r, x1);*/
-				double originX, originZ, angle=30.0, radius=3.0;
-				originX = ball[i].x - 3;
-				originZ = ball[i].z;
-				ball[i].x = originX + cos(angle)*radius;
-				ball[i].z = originZ + sin(angle)*radius;
-			}
+				do {
+					double originX, originZ, radius = 0.5;
+					originX = ball[i].x + 0.005;
+					//originZ = ball[i].z;
+					ball[i].x = originX + cos(angle)*radius;
+					ball[i].z = originZ + sin(angle)*radius;
+					printf("\noriginX: %.2lf originY: %.2lf -- ball[%d].x = %.2lf, ball[%d].z = %.2lf angle = %.2lf", originX, originZ, i, ball[i].x, i, ball[i].z, angle);
+					angle += 2.0;
+				} while (angle < 2 * M_PI);
+				if (angle >= M_PI) angle = 0.0;
 		}
+
 	}
 	//glutPostRedisplay();
 
