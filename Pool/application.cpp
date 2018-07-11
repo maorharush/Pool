@@ -1,9 +1,6 @@
 #include <GL/glut.h>
 #include <math.h>
 #include <stdio.h>
-
-
-
 #define CAMERA_UP 'i'
 #define CAMERA_DOWN 'k'
 #define CAMERA_LEFT 'j'
@@ -12,7 +9,7 @@
 #define KEY_DOWN 's'
 #define KEY_LEFT 'a'
 #define KEY_RIGHT 'd'
-
+//float xp = 0, yp = 0, zp = 0;
 int rot_x = 90, rot_z = 90, rot_y = 90, curBallIndex = -1;
 float xt = 0.0, yt = 0.0, zt = 0.0;
 char printContainer[100],*printPointer;
@@ -197,14 +194,12 @@ void drawAllBalls(){
 }
 void draw()
 {
-	//int i;
 	glClear(GL_COLOR_BUFFER_BIT |
 		GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	glTranslatef(0, 0, -15);
 	glRotatef(rot_x, 0, 1, 0);
 	glRotatef(rot_z, 0, 0, 1);
-	/*********/
 #pragma region decorateEnvoierment
 	glBegin(GL_QUADS);
 	// Floor
@@ -250,6 +245,23 @@ void draw()
 	border3();
 	glTranslatef(xt + 5, yt, zt - 2);
 	border3();
+	/*// Create light components
+	GLfloat ambientLight[] = { 1.0, 0.0, 0.0, 1.0f };
+	GLfloat diffuseLight[] = { 0.8f, 0.8f, 0.8, 1.0f };
+	GLfloat specularLight[] = { 0.5, 0.5, 0.5, 1.0f };
+	GLfloat mat_shininess[] = { 128.0 };
+	//x,y,z,light
+	GLfloat position[] = { xp, yp, zp, 1.0f };
+	// Assign created components to GL_LIGHT0
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
+	glMaterialfv(GL_MAX_LIGHTS, GL_SHININESS, mat_shininess);
+	glLightfv(GL_LIGHT0, GL_POSITION, position);
+
+	/******************************************************************/
+	/*glTranslatef(xp, yp, zp);
+	glColor3f(2, 2, 3); */
 	//black circle
 	glTranslatef(2, 0.1, 3);
 	glColor3f(0, 0, 0);
@@ -286,17 +298,41 @@ void changeBallControl(int ballNum) {
 	//glutPostRedisplay();
 }
 
+int move_x(int i)
+{
+	int j;
+	for (j = 0; j<10; j++)
+	{
+		if (j != i) {
+			if (ball[i].x >= ball[j].x - 0.9 && ball[i].x <= ball[j].x + 0.9 && ball[i].z >= ball[j].z - 0.9 && ball[i].z <= ball[j].z + 0.9)
+				return 0;
+		}
+
+	}
+	return 1;
+}
+
+
 void idle() {
 	for (int i = 0; i < 10; i++) {
-		if (ball[i].left == true)
+		if (ball[i].left == true&& move_x(i)==1 && ball[i].active==true)
 			ball[i].z -= ball[i].speed;
-		else if (ball[i].right == true)
+		else if (ball[i].left == true && move_x(i) == 0 && ball[i].active == false)
+			ball[i].z -= ball[i].speed;
+		else if (ball[i].right == true && move_x(i) == 1 && ball[i].active == true)
 			ball[i].z += ball[i].speed;
-		else if (ball[i].up == true)
+		else if (ball[i].right == true && move_x(i) == 0 && ball[i].active == false)
+			ball[i].z += ball[i].speed;
+		else if (ball[i].up == true && move_x(i) == 1 && ball[i].active == true)
 			ball[i].x += ball[i].speed;
-		else if (ball[i].down == true)
+		else if (ball[i].up == true && move_x(i) == 0 && ball[i].active == false)
+			ball[i].x += ball[i].speed;
+		else if (ball[i].down == true && move_x(i) == 1 && ball[i].active == true)
+			ball[i].x -= ball[i].speed;
+		else if (ball[i].down == true && move_x(i) == 0 && ball[i].active == false)
 			ball[i].x -= ball[i].speed;
 	}
+	
 	//draw();
 	glutPostRedisplay();
 }
@@ -324,6 +360,7 @@ void init()
 	
 	
 }
+
 void keyboard(unsigned char key, int x, int y)
 {
 	
@@ -365,6 +402,7 @@ void keyboard(unsigned char key, int x, int y)
 		for (int i = 0; i < 10; i++) {
 			if (ball[i].active == true)
 			{
+		
 				ball[i].left = false;
 				ball[i].right = false;
 				ball[i].up = false;
@@ -380,24 +418,28 @@ void keyboard(unsigned char key, int x, int y)
 				ball[i].right = false;
 				ball[i].up = false;
 				ball[i].down = false;
+			
+			
 			}
 		}
 	}
 	if (key == KEY_RIGHT) {
+	
 		for (int i = 0; i < 10; i++) {
-			if (ball[i].active == true)
-			{
+			
 				ball[i].left = false;
 				ball[i].right = true;
 				ball[i].up = false;
 				ball[i].down = false;
+		
+					
 			}
 		}
 	}
 	//glutPostRedisplay();
 
 	//draw();
-}
+
 int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv);
@@ -408,6 +450,7 @@ int main(int argc, char *argv[])
 	glutKeyboardFunc(keyboard);// Set the keyboard function
 	glutIdleFunc(idle);
 	initBallParams();
+	
 	init();
 	glutMainLoop();// Start the main event loop
 }
