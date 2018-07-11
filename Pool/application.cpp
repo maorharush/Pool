@@ -19,7 +19,7 @@ double color1 = 0.3, color2 = 0.0, color3 = 0.3;
 const float DEG2RAD = 3.14159 / 180;
 struct Ball
 {
-	double x,y,z,speed,red,green,blue,blue;
+	double x,y,z,speed,red,green,blue;
 	bool left, right, up, down,active;
 };
 Ball ball[10];  
@@ -182,7 +182,7 @@ void initBallParams() {
 }
 void drawAllBalls(){
 	int i;
-	for (i = 0; i <= 10; i++) {
+	for (i = 0; i<10; i++) {
 		
 			drawBall(ball[i]);
 	
