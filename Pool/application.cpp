@@ -183,7 +183,7 @@ void initBallParams() {
 }
 void drawAllBalls(){
 	int i;
-	for (i = 0; i <= 10; i++) {
+	for (i = 0; i<10; i++) {
 		
 			drawBall(ball[i]);
 	
