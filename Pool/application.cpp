@@ -11,15 +11,16 @@
 #define KEY_DOWN 's'
 #define KEY_LEFT 'a'
 #define KEY_RIGHT 'd'
+#define KEY_ROTATE 'q'
 #pragma endregion
 int rot_x = 90, rot_z = 90, rot_y = 90, curBallIndex = -1;
 float xt = 0.0, yt = 0.0, zt = 0.0;
 char printContainer[100],*printPointer;
-double color1 = 0.3, color2 = 0.0, color3 = 0.3;
-const float DEG2RAD = 3.14159 / 180;
+double x1 = 90, r;
+//const float DEG2RAD = 3.14159 / 180;
 struct Ball
 {
-	double x,y,z,speed,red,green,blue,blue;
+	double x,y,z,speed,red,green,blue;
 	bool left, right, up, down,active;
 };
 Ball ball[10];  
@@ -327,7 +328,6 @@ void keyboard(unsigned char key, int x, int y)
 		rot_x += 5;
 		rot_z %= 360;
 	}
-
 	if (key == CAMERA_DOWN) {
 		rot_z -= 5;
 		rot_z %= 360;
@@ -381,6 +381,24 @@ void keyboard(unsigned char key, int x, int y)
 				ball[i].right = true;
 				ball[i].up = false;
 				ball[i].down = false;
+			}
+		}
+	}
+	if (key ==KEY_ROTATE)
+	{
+		for (int i = 0; i < 10; i++) {
+			if (ball[i].active == true)
+			{
+				/*r = x1;
+				ball[i].x = 5 * cos(r / 180);
+				ball[i].z = 5 * sin(r / 180);
+				x1 = x1 + 10;
+				printf("\n%lf %lf r = %lf x = %lf", xt, yt, r, x1);*/
+				double originX, originZ, angle=30.0, radius=3.0;
+				originX = ball[i].x - 3;
+				originZ = ball[i].z;
+				ball[i].x = originX + cos(angle)*radius;
+				ball[i].z = originZ + sin(angle)*radius;
 			}
 		}
 	}
