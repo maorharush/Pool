@@ -16,15 +16,15 @@
 #pragma endregion
 int rot_x = 90, rot_z = 90, rot_y = 90, curBallIndex = -1;
 float xt = 0.0, yt = 0.0, zt = 0.0;
-char printContainer[100],*printPointer;
-double x1 = 90, r,angle=0.0;
+char printContainer[100], *printPointer;
+double angle = 0.0, originX, originZ, radius = 0.5;
 //const float DEG2RAD = 3.14159 / 180;
 struct Ball
 {
-	double x,y,z,speed,red,green,blue;
-	bool left, right, up, down,active;
+	double x, y, z, speed, red, green, blue;
+	bool left, right, up, down, active, circularMotionIsActive;
 };
-Ball ball[10];  
+Ball ball[10];
 Ball ballForRefrence; //we'll keep the focused ball details here before changing them
 
 void drawBall(Ball ball) {
@@ -167,8 +167,8 @@ void drawCircle()
 	glEnd();
 }
 void initBallParams() {
-	ball[0].z = 2; ball[0].x=2; ball[0].red = 0.58; ball[0].green = 0; ball[0].blue = 0.83;
-	ball[1].z = 3; ball[1].x=3; ball[1].red = 0.64; ball[1].green = 0.16; ball[1].blue = 0.16;
+	ball[0].z = 2; ball[0].x = 2; ball[0].red = 0.58; ball[0].green = 0; ball[0].blue = 0.83;
+	ball[1].z = 3; ball[1].x = 3; ball[1].red = 0.64; ball[1].green = 0.16; ball[1].blue = 0.16;
 	ball[2].z = 6; ball[1].x = 1; ball[2].red = 0.16; ball[2].green = 0.36; ball[2].blue = 0.8;
 	ball[3].z = 5; ball[3].x = -5; ball[3].red = 0.9; ball[3].green = 0.9; ball[3].blue = 0.9;
 	ball[4].z = 4.8; ball[4].x = 5; ball[4].red = 0.31; ball[4].green = 0.58; ball[4].blue = 0.80;
@@ -180,14 +180,15 @@ void initBallParams() {
 	for (int i = 0; i < 10; i++)
 	{
 		ball[i].speed = 0.009;
+		ball[i].circularMotionIsActive = false;
 	}
 }
-void drawAllBalls(){
+void drawAllBalls() {
 	int i;
-	for (i = 0; i<10; i++) {
-		
-			drawBall(ball[i]);
-	
+	for (i = 0; i < 10; i++) {
+
+		drawBall(ball[i]);
+
 	}
 }
 void draw()
@@ -255,7 +256,7 @@ void draw()
 	drawCircle();
 #pragma endregion
 	//print the selected ball
-	sprintf_s(printContainer,"Selected ball : %d", (char)curBallIndex);
+	sprintf_s(printContainer, "Selected ball : %d", (char)curBallIndex);
 	printPointer = printContainer;
 	glColor3f(1.0, 1.0, 1.0);
 	glRasterPos3f(0, 5, 3);
@@ -290,11 +291,20 @@ void idle() {
 			ball[i].x += ball[i].speed;
 		else if (ball[i].down == true)
 			ball[i].x -= ball[i].speed;
+		else if (ball[i].circularMotionIsActive==true)
+		{
+			if (angle < 2 * M_PI) {
+				ball[i].x = originX + cos(angle)*radius;
+				ball[i].z = originZ + sin(angle)*radius;
+				printf("\noriginX: %.2lf originY: %.2lf -- ball[%d].x = %.2lf, ball[%d].z = %.2lf angle = %.2lf", originX, originZ, i, ball[i].x, i, ball[i].z, angle);
+				angle += 0.2;
+			}
+		}
 	}
 	//draw();
-	
-	
-	
+	if (angle >= 2 * M_PI) angle = 0.0; 
+
+
 	glutPostRedisplay();
 }
 void init()
@@ -320,7 +330,7 @@ void init()
 }
 void keyboard(unsigned char key, int x, int y)
 {
-	
+
 	if (key == 02) exit(1);
 	//changing rotation keystroks and adding new one
 	if (key == CAMERA_UP) {
@@ -370,7 +380,7 @@ void keyboard(unsigned char key, int x, int y)
 			if (ball[i].active == true)
 			{
 				ball[i].left = true;
- 				ball[i].right = false;
+				ball[i].right = false;
 				ball[i].up = false;
 				ball[i].down = false;
 			}
@@ -387,31 +397,19 @@ void keyboard(unsigned char key, int x, int y)
 			}
 		}
 	}
-	if (key ==KEY_ROTATE)
+	if (key == KEY_ROTATE)
 	{
 		for (int i = 0; i < 10; i++) {
 			if (ball[i].active == true)
 			{
-				/*r = x1;
-				ball[i].x = 5 * cos(r / 180);
-				ball[i].z = 5 * sin(r / 180);
-				x1 = x1 + 10;
-				printf("\n%lf %lf r = %lf x = %lf", xt, yt, r, x1);*/
-				do {
-					double originX, originZ, radius = 0.5;
-					originX = ball[i].x + 0.005;
-					//originZ = ball[i].z;
-					ball[i].x = originX + cos(angle)*radius;
-					ball[i].z = originZ + sin(angle)*radius;
-					printf("\noriginX: %.2lf originY: %.2lf -- ball[%d].x = %.2lf, ball[%d].z = %.2lf angle = %.2lf", originX, originZ, i, ball[i].x, i, ball[i].z, angle);
-					angle += 2.0;
-				} while (angle < 2 * M_PI);
-				if (angle >= M_PI) angle = 0.0;
+				originX = ball[i].x;
+				originZ = ball[i].z + 0.25;
+				ball[i].circularMotionIsActive = true;
+			}
+
 		}
-
+		
 	}
-	//glutPostRedisplay();
-
 	draw();
 }
 int main(int argc, char *argv[])
