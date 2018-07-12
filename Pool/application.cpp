@@ -13,6 +13,8 @@
 #define KEY_LEFT 'a'
 #define KEY_RIGHT 'd'
 #define KEY_ROTATE 'q'
+#define SPEED 0.05
+#define FRICTION_MODIFIER 0.0001
 #pragma endregion
 int rot_x = 90, rot_z = 90, rot_y = 90, curBallIndex = -1;
 float xt = 0.0, yt = 0.0, zt = 0.0;
@@ -179,7 +181,7 @@ void initBallParams() {
 	ball[9].z = 1; ball[9].x = -8; ball[9].red = 0.58; ball[9].green = 0; ball[9].blue = 0.83;
 	for (int i = 0; i < 10; i++)
 	{
-		ball[i].speed = 0.009;
+		ball[i].speed = SPEED;
 		ball[i].circularMotionIsActive = false;
 	}
 }
@@ -280,33 +282,123 @@ void changeBallControl(int ballNum) {
 	ball[ballNum].active = true;
 	//glutPostRedisplay();
 }
+double calcVelocity(Ball *ball) {
+	if (ball->speed >= 0.0) {
+		ball->speed -= FRICTION_MODIFIER;
+	}
+	printf("\nball.speed: %.5lf", ball->speed);
+	return ball->speed;
+}
+int checkCollision(int i)
+{
+	int j;
+	for (j = 0; j < 10; j++)
+	{
+		if (j != i) {
+			if (ball[i].x >= ball[j].x - 0.58 && ball[i].x <= ball[j].x + 0.58 && ball[i].z >= ball[j].z - 0.58 && ball[i].z <= ball[j].z + 0.58)
+				return 0;
+		}
 
+	}
+	return 1;
+}
 void idle() {
 	for (int i = 0; i < 10; i++) {
-		if (ball[i].left == true)
-			ball[i].z -= ball[i].speed;
-		else if (ball[i].right == true)
-			ball[i].z += ball[i].speed;
-		else if (ball[i].up == true)
-			ball[i].x += ball[i].speed;
-		else if (ball[i].down == true)
-			ball[i].x -= ball[i].speed;
-		else if (ball[i].circularMotionIsActive==true)
-		{
-			if (angle < 2 * M_PI) {
-				ball[i].x = originX + cos(angle)*radius;
-				ball[i].z = originZ + sin(angle)*radius;
-				printf("\noriginX: %.2lf originY: %.2lf -- ball[%d].x = %.2lf, ball[%d].z = %.2lf angle = %.2lf", originX, originZ, i, ball[i].x, i, ball[i].z, angle);
-				angle += 0.2;
+		if (ball[i].active == true) {
+			if (ball[i].left == true && checkCollision(i) == 1 && ball[i].z >= -1.0) {
+				ball[i].z -= calcVelocity(&ball[i]);
 			}
+			else {
+				ball[i].left = false;
+				ball[i].z += 0.02;
+			}
+			if (ball[i].right == true && checkCollision(i) == 1 && ball[i].z <= 7.5) {
+				ball[i].z += calcVelocity(&ball[i]);
+			}
+			else {
+				ball[i].right = false;
+				ball[i].z -= 0.02;
+			}
+			if (ball[i].up == true && checkCollision(i) == 1 && ball[i].x <= 0.7) {
+				ball[i].x += calcVelocity(&ball[i]);
+			}
+			else {
+				ball[i].up = false;
+				ball[i].x -= 0.02;
+			}
+			if (ball[i].down == true && checkCollision(i) == 1 && ball[i].x >= -8.2) {
+				ball[i].x -= calcVelocity(&ball[i]);
+			}
+			else {
+				ball[i].down = false;
+				ball[i].x += 0.02;
+			}
+			if (ball[i].circularMotionIsActive == true)
+			{
+				if (angle < 2 * M_PI) {
+					ball[i].x = originX + cos(angle)*radius;
+					ball[i].z = originZ + sin(angle)*radius;
+					printf("\noriginX: %.2lf originY: %.2lf -- ball[%d].x = %.2lf, ball[%d].z = %.2lf angle = %.2lf", originX, originZ, i, ball[i].x, i, ball[i].z, angle);
+					angle += calcVelocity(&ball[i]);
+				}
+			}
+
 		}
 	}
-	//draw();
-	if (angle >= 2 * M_PI) angle = 0.0; 
+
+	if (angle >= 2 * M_PI) angle = 0.0;
 
 
 	glutPostRedisplay();
+	/*if (ball[i].left == true && checkCollision(i) == 1 && ball[i].active == true && ball[i].z >= -1.0)
+		ball[i].z -= calcVelocity(&ball[i]);
+	else {
+		ball[i].left = false;
+		ball[i].z += 0.02;
+	}*/
+
+	/*if (ball[i].right == true && checkCollision(i) == 1 && ball[i].active == true && ball[i].z <= 7.5)
+		ball[i].z += calcVelocity(&ball[i]);
+	else {
+		ball[i].right = false;
+		ball[i].z -= 0.02;
+	}
+
+	if (ball[i].up == true && checkCollision(i) == 1 && ball[i].active == true && ball[i].x <= 0.7)
+		ball[i].x += calcVelocity(&ball[i]);
+	else {
+		ball[i].up = false;
+		ball[i].x -= 0.02;
+	}
+
+	if (ball[i].down == true && checkCollision(i) == 1 && ball[i].active == true && ball[i].x >= -8.2)
+		ball[i].x -= calcVelocity(&ball[i]);
+	else {
+		ball[i].down = false;
+		ball[i].x += 0.02;
+	}
+	if (ball[i].circularMotionIsActive == true)
+	{
+		if (angle < 2 * M_PI) {
+			ball[i].x = originX + cos(angle)*radius;
+			ball[i].z = originZ + sin(angle)*radius;
+			printf("\noriginX: %.2lf originY: %.2lf -- ball[%d].x = %.2lf, ball[%d].z = %.2lf angle = %.2lf", originX, originZ, i, ball[i].x, i, ball[i].z, angle);
+			angle += calcVelocity(&ball[i]);
+		}
+	}*/
+
+	/*if (ball[i].left == true)
+		ball[i].z -= calcVelocity(&ball[i]);
+	else if (ball[i].right == true)
+		ball[i].z += calcVelocity(&ball[i]);
+	else if (ball[i].up == true)
+		ball[i].x += calcVelocity(&ball[i]);
+	else if (ball[i].down == true)
+		ball[i].x -= calcVelocity(&ball[i]);*/
+
 }
+
+
 void init()
 {
 	glMatrixMode(GL_PROJECTION);
@@ -357,6 +449,7 @@ void keyboard(unsigned char key, int x, int y)
 		for (int i = 0; i < 10; i++) {
 			if (ball[i].active == true)
 			{
+				ball[i].speed = SPEED;
 				ball[i].left = false;
 				ball[i].right = false;
 				ball[i].up = true;
@@ -368,6 +461,7 @@ void keyboard(unsigned char key, int x, int y)
 		for (int i = 0; i < 10; i++) {
 			if (ball[i].active == true)
 			{
+				ball[i].speed = SPEED;
 				ball[i].left = false;
 				ball[i].right = false;
 				ball[i].up = false;
@@ -379,6 +473,7 @@ void keyboard(unsigned char key, int x, int y)
 		for (int i = 0; i < 10; i++) {
 			if (ball[i].active == true)
 			{
+				ball[i].speed = SPEED;
 				ball[i].left = true;
 				ball[i].right = false;
 				ball[i].up = false;
@@ -390,6 +485,7 @@ void keyboard(unsigned char key, int x, int y)
 		for (int i = 0; i < 10; i++) {
 			if (ball[i].active == true)
 			{
+				ball[i].speed = SPEED;
 				ball[i].left = false;
 				ball[i].right = true;
 				ball[i].up = false;
@@ -402,13 +498,14 @@ void keyboard(unsigned char key, int x, int y)
 		for (int i = 0; i < 10; i++) {
 			if (ball[i].active == true)
 			{
+				ball[i].speed = SPEED;
 				originX = ball[i].x;
-				originZ = ball[i].z + 0.25;
+				originZ = ball[i].z;
 				ball[i].circularMotionIsActive = true;
 			}
 
 		}
-		
+
 	}
 	draw();
 }
