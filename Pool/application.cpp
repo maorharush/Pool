@@ -3,7 +3,6 @@
 #include <math.h>
 #include <stdio.h>
 #pragma region defines section
-
 #define CAMERA_UP 'i'
 #define CAMERA_DOWN 'k'
 #define CAMERA_LEFT 'j'
@@ -14,9 +13,9 @@
 #define KEY_RIGHT 'd'
 #define KEY_ROTATE 'q'
 #define SPEED 0.05
-#define FRICTION_MODIFIER 0.0001
+#define FRICTION_MODIFIER 0.0005
 #pragma endregion
-int rot_x = 90, rot_z = 90, rot_y = 90, curBallIndex = -1;
+int rot_x = 90, rot_z = 90, rot_y = 90, curBallIndex = -1, score = 0;
 float xt = 0.0, yt = 0.0, zt = 0.0;
 char printContainer[100], *printPointer;
 double angle = 0.0, originX, originZ, radius = 0.5;
@@ -24,16 +23,21 @@ double angle = 0.0, originX, originZ, radius = 0.5;
 struct Ball
 {
 	double x, y, z, speed, red, green, blue;
-	bool left, right, up, down, active, circularMotionIsActive;
+	bool left, right, up, down, active, circularMotionIsActive, draw;
 };
 Ball ball[10];
 Ball ballForRefrence; //we'll keep the focused ball details here before changing them
 
-void drawBall(Ball ball) {
+void drawBall(Ball ball, int i) {
 	glColor3f(ball.red, ball.green, ball.blue);
-	glTranslatef(ball.x, 0, ball.z);
+	glTranslatef(ball.x, 0.1, ball.z);
 	glutSolidSphere(0.3, 32, 32);
-	glTranslatef(-ball.x, 0, -ball.z);
+	sprintf_s(printContainer, "%d", (char)i);
+	printPointer = printContainer;
+	glColor3f(1.0, 1.0, 1.0);
+	glRasterPos3f(ball.x*0.1, 1, ball.z*0.1);
+	do glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *printPointer); while (*(++printPointer));
+	glTranslatef(-ball.x, -0.1, -ball.z);
 }
 
 void border() {
@@ -158,38 +162,59 @@ void leg() {
 }
 void drawCircle()
 {
-	double x1 = 90, xt = 5 * cos(90.0 / 180), yt = 5 * sin(90.0 / 180), a, x, y;
+	double a, x, y;
 	glBegin(GL_POLYGON); /// glBegin(GL_LINE_LOOP);
 	for (int i = 0; i <= 720; i++) {
 		a = 3.14 * i;
 		x = cos(a / 360);
 		y = sin(a / 360);
+		x /= 2;
+		y /= 2;
 		glVertex3d(x, 0, y);
 	}
 	glEnd();
 }
 void initBallParams() {
-	ball[0].z = 2; ball[0].x = 2; ball[0].red = 0.58; ball[0].green = 0; ball[0].blue = 0.83;
-	ball[1].z = 3; ball[1].x = 3; ball[1].red = 0.64; ball[1].green = 0.16; ball[1].blue = 0.16;
-	ball[2].z = 6; ball[1].x = 1; ball[2].red = 0.16; ball[2].green = 0.36; ball[2].blue = 0.8;
-	ball[3].z = 5; ball[3].x = -5; ball[3].red = 0.9; ball[3].green = 0.9; ball[3].blue = 0.9;
-	ball[4].z = 4.8; ball[4].x = 5; ball[4].red = 0.31; ball[4].green = 0.58; ball[4].blue = 0.80;
-	ball[5].z = 2.5; ball[5].x = 4; ball[5].red = 0.51; ball[5].green = 0.51; ball[5].blue = 0.51;
-	ball[6].z = 3; ball[6].x = -4; ball[6].red = 0.51; ball[6].green = 0.51; ball[6].blue = 0.51;
-	ball[7].z = 5; ball[7].x = -4.3; ball[7].red = 1; ball[7].green = 0.5; ball[7].blue = 0.0;
-	ball[8].z = 6.5; ball[8].x = -7; ball[8].red = 0.64; ball[8].green = 0.16; ball[8].blue = 0.16;
-	ball[9].z = 1; ball[9].x = -8; ball[9].red = 0.58; ball[9].green = 0; ball[9].blue = 0.83;
+	ball[6].z = 2; ball[6].x = -8.2; ball[0].red = 0.58; ball[0].green = 0; ball[0].blue = 0.83;
+	ball[7].z = 2.6; ball[7].x = -8.2; ball[1].red = 0.64; ball[1].green = 0.16; ball[1].blue = 0.16;
+	ball[8].z = 3.2; ball[8].x = -8.2; ball[2].red = 0.16; ball[2].green = 0.36; ball[2].blue = 0.8;
+	ball[9].z = 3.8; ball[9].x = -8.2; ball[3].red = 0.5; ball[3].green = 0.8; ball[3].blue = 0.9;
+	ball[0].z = 4.4; ball[0].x = -8.2; ball[4].red = 0.31; ball[4].green = 0.58; ball[4].blue = 0.80;
+	ball[1].z = 2; ball[1].x = -7.6; ball[5].red = 0.51; ball[5].green = 0.51; ball[5].blue = 0.51;
+	ball[2].z = 2.6; ball[2].x = -7.6; ball[6].red = 0.51; ball[6].green = 0.51; ball[6].blue = 0.51;
+	ball[3].z = 3.2; ball[3].x = -7.6; ball[7].red = 1; ball[7].green = 0.5; ball[7].blue = 0.0;
+	ball[4].z = 3.8; ball[4].x = -7.6; ball[8].red = 0.64; ball[8].green = 0.16; ball[8].blue = 0.16;
+	ball[5].z = 4.4; ball[5].x = -7.6; ball[9].red = 0.58; ball[9].green = 0; ball[9].blue = 0.83;
 	for (int i = 0; i < 10; i++)
 	{
+		ball[i].draw = true;
 		ball[i].speed = SPEED;
 		ball[i].circularMotionIsActive = false;
 	}
 }
+void changeBallState(Ball * ball)
+{
+	ball->draw = false;
+	ball->x = -50;
+	ball->z = -50;
+}
+void blackHole(Ball *ball) {
+	if ((ball->x >= 0.13 && ball->x <= 0.26 && ball->z <= 0.35 && ball->z >= -0.11) || (ball->x >= -2.14 && ball->x <= -1.7 && ball->z >= 5.7 && ball->z <= 6.57)) {
+		score += 15;
+		changeBallState(ball);
+	}
+	else if (ball->x >= -4.3 && ball->x <= -3.4 && ball->z <= 2.3 && ball->z >= 2) {
+		score -= 15;
+		changeBallState(ball);
+	}
+	
+}
 void drawAllBalls() {
 	int i;
-	for (i = 0; i < 10; i++) {
-
-		drawBall(ball[i]);
+	for (i = 0; i < 10; i++){
+		blackHole(&ball[i]);
+		if (ball[i].draw == true)
+			drawBall(ball[i], i);
 
 	}
 }
@@ -249,6 +274,7 @@ void draw()
 	glTranslatef(xt + 5, yt, zt - 2);
 	border3();
 	//black circle
+
 	glTranslatef(2, 0.1, 3);
 	glColor3f(0, 0, 0);
 	drawCircle();
@@ -256,6 +282,14 @@ void draw()
 	glTranslatef(2, 0.1, -6.2);
 	glColor3f(0, 0, 0);
 	drawCircle();
+
+	glNormal3f(0, 1, 0);
+	glTranslatef(-4, 0.1, 2.2);
+	glColor3f(0.64, 0.16, 0.16);
+	drawCircle();
+
+	glTranslatef(4, -0.1, -2.2);//0000000
+
 #pragma endregion
 	//print the selected ball
 	sprintf_s(printContainer, "Selected ball : %d", (char)curBallIndex);
@@ -263,7 +297,38 @@ void draw()
 	glColor3f(1.0, 1.0, 1.0);
 	glRasterPos3f(0, 5, 3);
 	do glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *printPointer); while (*(++printPointer));
+	sprintf_s(printContainer, "your score is : %d", (char)score);
+	printPointer = printContainer;
+	glColor3f(1.0, 1.0, 1.0);
+	glRasterPos3f(2, 4, 2);
+	do glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *printPointer); while (*(++printPointer));
 	drawAllBalls();
+	if (score >= 50) {
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clean the screen and the depth buffer
+		glLoadIdentity();
+		glTranslatef(-7, 0, -15);
+		glRotatef(rot_x, 0, 1, 0);
+		glRotatef(rot_z, 0, 0, 1);
+		sprintf_s(printContainer, "GAME OVER", (char)score);
+		printPointer = printContainer;
+		glColor3f(1.0, 1.0, 1.0);
+		glRasterPos3f(2, 4, 2);
+		do glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *printPointer); while (*(++printPointer));
+
+		sprintf_s(printContainer, "your score is : %d", (char)score);
+		printPointer = printContainer;
+		glColor3f(1.0, 1.0, 1.0);
+		glRasterPos3f(2, 0, 2);
+	
+		do glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *printPointer); while (*(++printPointer));
+		sprintf_s(printContainer, "press ESC to exit", (char)score);
+		printPointer = printContainer;
+		glColor3f(1.0, 1.0, 1.0);
+		glRasterPos3f(1, 0, 1);
+		do glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *printPointer); while (*(++printPointer));
+		rot_z -= 5;
+		rot_z %= 360;
+	}
 	glutSwapBuffers();			// display the output
 }
 void changeBallControl(int ballNum) {
@@ -286,7 +351,8 @@ double calcVelocity(Ball *ball) {
 	if (ball->speed >= 0.0) {
 		ball->speed -= FRICTION_MODIFIER;
 	}
-	printf("\nball.speed: %.5lf", ball->speed);
+	printf("\nball.speed: %lf", ball->speed);
+
 	return ball->speed;
 }
 int checkCollision(int i)
@@ -302,103 +368,63 @@ int checkCollision(int i)
 	}
 	return 1;
 }
+
 void idle() {
 	for (int i = 0; i < 10; i++) {
 		if (ball[i].active == true) {
-			if (ball[i].left == true && checkCollision(i) == 1 && ball[i].z >= -1.0) {
+			if (ball[i].left == true && checkCollision(i) == 1 && ball[i].z >= -1.0 && ball[i].speed > 0.001) {
+
 				ball[i].z -= calcVelocity(&ball[i]);
+				printf("\nball[%d].x: %.2f, ball[%d].z: %.2f", i, ball[i].x, i, ball[i].z);
 			}
 			else {
 				ball[i].left = false;
 				ball[i].z += 0.02;
 			}
-			if (ball[i].right == true && checkCollision(i) == 1 && ball[i].z <= 7.5) {
+			if (ball[i].right == true && checkCollision(i) == 1 && ball[i].z <= 7.5 && ball[i].speed > 0.001) {
+
 				ball[i].z += calcVelocity(&ball[i]);
+				printf("\nball[%d].x: %.2f, ball[%d].z: %.2f", i, ball[i].x, i, ball[i].z);
 			}
 			else {
 				ball[i].right = false;
 				ball[i].z -= 0.02;
 			}
-			if (ball[i].up == true && checkCollision(i) == 1 && ball[i].x <= 0.7) {
+			if (ball[i].up == true && checkCollision(i) == 1 && ball[i].x <= 0.7 && ball[i].speed > 0.001) {
+
 				ball[i].x += calcVelocity(&ball[i]);
+				printf("\nball[%d].x: %.2f, ball[%d].z: %.2f", i, ball[i].x, i, ball[i].z);
 			}
 			else {
 				ball[i].up = false;
 				ball[i].x -= 0.02;
 			}
-			if (ball[i].down == true && checkCollision(i) == 1 && ball[i].x >= -8.2) {
+			if (ball[i].down == true && checkCollision(i) == 1 && ball[i].x >= -8.2 && ball[i].speed > 0.001) {
+
 				ball[i].x -= calcVelocity(&ball[i]);
+				printf("\nball[%d].x: %.2f, ball[%d].z: %.2f", i, ball[i].x, i, ball[i].z);
 			}
 			else {
 				ball[i].down = false;
 				ball[i].x += 0.02;
 			}
-			if (ball[i].circularMotionIsActive == true)
-			{
-				if (angle < 2 * M_PI) {
+			if (ball[i].circularMotionIsActive == true) {
+				if (angle < 2 * M_PI && checkCollision(i) == 1) {
 					ball[i].x = originX + cos(angle)*radius;
 					ball[i].z = originZ + sin(angle)*radius;
 					printf("\noriginX: %.2lf originY: %.2lf -- ball[%d].x = %.2lf, ball[%d].z = %.2lf angle = %.2lf", originX, originZ, i, ball[i].x, i, ball[i].z, angle);
-					angle += calcVelocity(&ball[i]);
+					angle += calcVelocity(&ball[i]) * 5;
 				}
+				if (angle >= 2 * M_PI) angle = 0.0;
 			}
 
 		}
+
+
 	}
-
-	if (angle >= 2 * M_PI) angle = 0.0;
-
-
+	
 	glutPostRedisplay();
-	/*if (ball[i].left == true && checkCollision(i) == 1 && ball[i].active == true && ball[i].z >= -1.0)
-		ball[i].z -= calcVelocity(&ball[i]);
-	else {
-		ball[i].left = false;
-		ball[i].z += 0.02;
-	}*/
-
-	/*if (ball[i].right == true && checkCollision(i) == 1 && ball[i].active == true && ball[i].z <= 7.5)
-		ball[i].z += calcVelocity(&ball[i]);
-	else {
-		ball[i].right = false;
-		ball[i].z -= 0.02;
-	}
-
-	if (ball[i].up == true && checkCollision(i) == 1 && ball[i].active == true && ball[i].x <= 0.7)
-		ball[i].x += calcVelocity(&ball[i]);
-	else {
-		ball[i].up = false;
-		ball[i].x -= 0.02;
-	}
-
-	if (ball[i].down == true && checkCollision(i) == 1 && ball[i].active == true && ball[i].x >= -8.2)
-		ball[i].x -= calcVelocity(&ball[i]);
-	else {
-		ball[i].down = false;
-		ball[i].x += 0.02;
-	}
-	if (ball[i].circularMotionIsActive == true)
-	{
-		if (angle < 2 * M_PI) {
-			ball[i].x = originX + cos(angle)*radius;
-			ball[i].z = originZ + sin(angle)*radius;
-			printf("\noriginX: %.2lf originY: %.2lf -- ball[%d].x = %.2lf, ball[%d].z = %.2lf angle = %.2lf", originX, originZ, i, ball[i].x, i, ball[i].z, angle);
-			angle += calcVelocity(&ball[i]);
-		}
-	}*/
-
-	/*if (ball[i].left == true)
-		ball[i].z -= calcVelocity(&ball[i]);
-	else if (ball[i].right == true)
-		ball[i].z += calcVelocity(&ball[i]);
-	else if (ball[i].up == true)
-		ball[i].x += calcVelocity(&ball[i]);
-	else if (ball[i].down == true)
-		ball[i].x -= calcVelocity(&ball[i]);*/
-
 }
-
-
 void init()
 {
 	glMatrixMode(GL_PROJECTION);
@@ -408,7 +434,7 @@ void init()
 	GLfloat mat_ambdif[] = { 1.0, 1.0, 1.0, 1.0 };
 	GLfloat mat_specular[] = { 0.0, 1.0, 0.0, 0.0 };
 	GLfloat mat_shininess[] = { 80.0 };
-	GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
+	GLfloat light_position[] = { 1.0, 1.0, 1.0, 1.0 };
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_ambdif);	// set both amb and diff components
 	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);			// set specular
@@ -423,7 +449,7 @@ void init()
 void keyboard(unsigned char key, int x, int y)
 {
 
-	if (key == 02) exit(1);
+	if (key == 27) exit(1);
 	//changing rotation keystroks and adding new one
 	if (key == CAMERA_UP) {
 		rot_z += 5;
@@ -450,6 +476,7 @@ void keyboard(unsigned char key, int x, int y)
 			if (ball[i].active == true)
 			{
 				ball[i].speed = SPEED;
+				ball[i].circularMotionIsActive = false;
 				ball[i].left = false;
 				ball[i].right = false;
 				ball[i].up = true;
@@ -462,6 +489,7 @@ void keyboard(unsigned char key, int x, int y)
 			if (ball[i].active == true)
 			{
 				ball[i].speed = SPEED;
+				ball[i].circularMotionIsActive = false;
 				ball[i].left = false;
 				ball[i].right = false;
 				ball[i].up = false;
@@ -474,6 +502,7 @@ void keyboard(unsigned char key, int x, int y)
 			if (ball[i].active == true)
 			{
 				ball[i].speed = SPEED;
+				ball[i].circularMotionIsActive = false;
 				ball[i].left = true;
 				ball[i].right = false;
 				ball[i].up = false;
@@ -486,6 +515,7 @@ void keyboard(unsigned char key, int x, int y)
 			if (ball[i].active == true)
 			{
 				ball[i].speed = SPEED;
+				ball[i].circularMotionIsActive = false;
 				ball[i].left = false;
 				ball[i].right = true;
 				ball[i].up = false;
@@ -507,6 +537,7 @@ void keyboard(unsigned char key, int x, int y)
 		}
 
 	}
+
 	draw();
 }
 int main(int argc, char *argv[])
