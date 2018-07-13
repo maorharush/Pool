@@ -1,22 +1,36 @@
-#include <GL/glut.h>
-#include<math.h>
-int rot_x = 90, rot_z = 90;
+﻿#include <GL/glut.h>
+#include <math.h>
+#include <stdio.h>
+#define CAMERA_UP 'i'
+#define CAMERA_DOWN 'k'
+#define CAMERA_LEFT 'j'
+#define CAMERA_RIGHT 'l'
+#define KEY_UP 'w'
+#define KEY_DOWN 's'
+#define KEY_LEFT 'a'
+#define KEY_RIGHT 'd'
+//float xp = 0, yp = 0, zp = 0;
+int rot_x = 90, rot_z = 90, rot_y = 90, curBallIndex,myScore = 0;
 float xt = 0.0, yt = 0.0, zt = 0.0;
+char printContainer[100], *printPointer;
+char scores[100], *str1;
 double color1 = 0.3, color2 = 0.0, color3 = 0.3;
 const float DEG2RAD = 3.14159 / 180;
-struct kadur
+struct Ball
 {
 	double x;
 	double y;
 	double z;
-	double v;
-	double d;
-	bool f1, f2, f3, f4;
-	bool active;
+	double speed;
+	bool left, right, up, down;
+	bool status;
 	double red, green, blue;
 };
-kadur our_balls[10];  //drawball
-void drawBall(kadur ball) {
+Ball ball[10];  //drawball
+Ball ballForRefrence; //we'll keep the focused ball detail before changing them
+
+void drawBall(Ball ball) {
+	glColor3f(ball.red, ball.green, ball.blue);
 	glTranslatef(ball.x, 0, ball.z);
 	glutSolidSphere(0.3, 32, 32);
 	glTranslatef(-ball.x, 0, -ball.z);
@@ -55,9 +69,8 @@ void border() {
 	glVertex3f(0, 0, -5);
 	glEnd();
 }
-
 //sides
-void border2() {
+void borderSides() {
 	glBegin(GL_QUADS);
 	glNormal3f(0, 0, 1);
 	glVertex3f(-5, 0, 5);
@@ -81,7 +94,7 @@ void border2() {
 //inside
 void border3() {
 	glBegin(GL_QUADS);
-	// Front	  		
+	  		
 	glNormal3f(0, 0, 1);
 	glVertex3f(0, 0, 0);
 	glVertex3f(0, 0.5, 0);
@@ -143,9 +156,9 @@ void leg() {
 	glVertex3f(0.5, 0, -0.5);
 	glEnd();
 }
-void drawCircle()
+void drawPoligon()
 {
-	double x1 = 90, xt = 5 * cos(90.0 / 180), yt = 5 * sin(90.0 / 180), r, a, x, y;
+	double x1 = 90, xt = 5 * cos(90.0 / 180), yt = 5 * sin(90.0 / 180), a, x, y;
 	glBegin(GL_POLYGON); /// glBegin(GL_LINE_LOOP);
 	for (int i = 0; i <= 720; i++) {
 		a = 3.14 * i;
@@ -155,44 +168,32 @@ void drawCircle()
 	}
 	glEnd();
 }
-
-void keyboard(unsigned char key, int x, int y)
-{
-	if (key == 27) exit(1);
-	if (key == 'r') {
-		rot_z += 5;
-		rot_z %= 360;
-	}
-	if (key == 't') {
-		rot_x += 5;
-		rot_x %= 360;
-	}
-	if (key == '0')
+void initBallParams() {
+	ball[0].z = 2.2; ball[0].x = -2; ball[0].red = 0.58; ball[0].green = 0; ball[0].blue = 0.83;
+	ball[1].z = 2.7; ball[1].x = -3; ball[1].red = 0.64; ball[1].green = 0.16; ball[1].blue = 0.16;
+	ball[2].z = 0.5; ball[2].x = -4; ball[2].red = 0.16; ball[2].green = 0.36; ball[2].blue = 0.8;
+	ball[3].z = 4.5; ball[3].x = 0; ball[3].red = 0.9; ball[3].green = 0.9; ball[3].blue = 0.9;
+	ball[4].z = 4.8; ball[4].x = -2; ball[4].red = 0.31; ball[4].green = 0.58; ball[4].blue = 0.80;
+	ball[5].z = 2.5; ball[5].x = 0; ball[5].red = 0.51; ball[5].green = 0.51; ball[5].blue = 0.51;
+	ball[6].z = 2.2; ball[6].x = -6; ball[6].red = -3; ball[6].green = 0.51; ball[6].blue = 0.51;
+	ball[7].z = 5.0; ball[7].x = -4.3; ball[7].red = 1; ball[7].green = 0.5; ball[7].blue = 0.0;
+	ball[8].z = 6.5; ball[8].x = -7; ball[8].red = 0.64; ball[8].green = 0.16; ball[8].blue = 0.16;
+	ball[9].z = -0.5; ball[9].x = -8; ball[9].red = 0.58; ball[9].green = 0; ball[9].blue = 0.83;
+	ball[curBallIndex].red = 1;
+	ball[curBallIndex].blue = 1;
+	ball[curBallIndex].green = 1;
+	for (int i = 0; i < 10; i++)
 	{
-		our_balls[0].active = true;
-		our_balls[1].active = false;
-		our_balls[2].active = false;
-		our_balls[0].red = 1;
-		our_balls[0].green = 1;
-		our_balls[0].blue = 1;
-
+		ball[i].speed = 0.0009;
 	}
-
-	if (key == 'w')
-	{
-		for (int i = 0; i<10; i++) {
-			if (our_balls[i].active == true)
-			{
-				our_balls[i].f1 = true;
-				our_balls[i].f2 = false;
-				our_balls[i].f3 = false;
-				our_balls[i].f4 = false;
-			}
-		}
-	}
-
 }
+void drawAllBalls() {
+	int i;
+	for (i = 0; i <= 10; i++) {
+		drawBall(ball[i]);
 
+	}
+}
 void draw()
 {
 	glClear(GL_COLOR_BUFFER_BIT |
@@ -201,11 +202,7 @@ void draw()
 	glTranslatef(0, 0, -15);
 	glRotatef(rot_x, 0, 1, 0);
 	glRotatef(rot_z, 0, 0, 1);
-	/*********/
-	for (int i = 0; i < 10; i++)
-	{
-		our_balls[i].v = 0.000350;
-	}
+#pragma region decorateEnvoierment
 	glBegin(GL_QUADS);
 	// Floor
 	glColor3f(0.15, 0.23, 0.23);
@@ -239,73 +236,179 @@ void draw()
 	glTranslatef(xt - 10, yt, zt);
 	border();
 	glTranslatef(xt + 5, yt, zt);
-	border2();
+	borderSides();
 	glTranslatef(xt, yt, zt - 9.5);
-	border2();
-	glTranslatef(xt + 1, yt, zt + 7.5);
+	borderSides();
+
+	glTranslatef(xt+1, yt, zt + 7.5);
 	border3();
 	glTranslatef(xt - 6.5, yt, zt);
 	border3();
 	glTranslatef(xt, yt, zt + 4);
 	border3();
-	glTranslatef(xt + 5, yt, zt - 2);
-	border3();
+	glTranslatef(xt + 4, yt, zt - 2);
+	//border3();
+	glTranslatef(1, 0, 0);
+	/*// Create light components
+	GLfloat ambientLight[] = { 1.0, 0.0, 0.0, 1.0f };
+	GLfloat diffuseLight[] = { 0.8f, 0.8f, 0.8, 1.0f };
+	GLfloat specularLight[] = { 0.5, 0.5, 0.5, 1.0f };
+	GLfloat mat_shininess[] = { 128.0 };
+	//x,y,z,light
+	GLfloat position[] = { xp, yp, zp, 1.0f };
+	// Assign created components to GL_LIGHT0
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
+	glMaterialfv(GL_MAX_LIGHTS, GL_SHININESS, mat_shininess);
+	glLightfv(GL_LIGHT0, GL_POSITION, position);
+
+	/******************************************************************/
+	/*glTranslatef(xp, yp, zp);
+	glColor3f(2, 2, 3); */
 	//black circle
 	glTranslatef(2, 0.1, 3);
 	glColor3f(0, 0, 0);
-	drawCircle();
+	drawPoligon();
 	//black circle
 	glTranslatef(2, 0.1, -6.2);
-	glColor3f(0, 0, 0);
-	drawCircle();
-	////////////////////////////////////////////balls:
-	/* 1 */ glColor3f(our_balls[0].red, our_balls[0].green, our_balls[0].blue);
-	drawBall(our_balls[0]);
-	/* 2 */   glColor3f(our_balls[1].red, our_balls[1].green, our_balls[1].blue);
-	drawBall(our_balls[1]);
-	glColor3f(our_balls[2].red, our_balls[2].green, our_balls[2].blue);
-	drawBall(our_balls[2]);
+	glColor3f(1.0, 0, 0);
+	drawPoligon();
 
-	//fourth ball - orange
-	glColor3f(our_balls[3].red, our_balls[3].green, our_balls[3].blue);
-	drawBall(our_balls[3]);
-	//fifth ball - blue
-	glColor3f(our_balls[4].red, our_balls[4].green, our_balls[4].blue);
-	drawBall(our_balls[4]);
-	//sixth ball - gray
-	glColor3f(our_balls[5].red, our_balls[5].green, our_balls[5].blue);
-	drawBall(our_balls[5]);
-	//seventh ball - gray
-	glColor3f(our_balls[6].red, our_balls[6].green, our_balls[6].blue);
-	drawBall(our_balls[6]);
-	//eighth ball - orange
-	glColor3f(our_balls[7].red, our_balls[7].green, our_balls[7].blue);
-	drawBall(our_balls[7]);
-	//ninth ball - red
-	glColor3f(our_balls[8].red, our_balls[8].green, our_balls[8].blue);
-	drawBall(our_balls[8]);
-	//tenth ball - purple
-	glColor3f(our_balls[9].red, our_balls[9].green, our_balls[9].blue);
-	drawBall(our_balls[9]);
+	for(int j=0;j<10;j++){
+		if (ball[j].status == true &&(ball[j].left == true || ball[j].right == true || ball[j].up == true || ball[j].down == true)) {
+			printf("%f, %f", ball[j].x, ball[j].z);
+		}
+	}
 
+#pragma endregion
+	//print the selected ball
+	sprintf_s(printContainer, "Selected ball : %d", (char)curBallIndex);
+	printPointer = printContainer;
+	glColor3f(1.0, 1.0, 1.0);
+	glRasterPos3f(0, 5, 3);
+	do glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *printPointer); while (*(++printPointer));
 
+	//print the selected ball
+	sprintf_s(scores, "score : %d", (char)myScore);
+	str1 = scores;
+	glColor3f(1.0, 1.0, 1.0);
+	glRasterPos3f(0, 5, 0);
+	do glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *str1); while (*(++str1));
 
+	drawAllBalls();
 	glutSwapBuffers();			// display the output
 }
-void idle()
-{
-	for (int i = 0; i < 10; i++) {
-		if (our_balls[i].f1 == true)
-			our_balls[i].z += our_balls[i].v;
-		else if (our_balls[i].f2 == true)
-			our_balls[i].z -= our_balls[i].v;
-		else if (true && our_balls[i].f3)
-			our_balls[i].x -= our_balls[i].v;
-		else if (our_balls[i].f4 == true)
-			our_balls[i].x += our_balls[i].v;
+void changeBallControl(int ballNum) {
+
+	if (curBallIndex >= 0) {
+		ball[curBallIndex].blue = ballForRefrence.blue;
+		ball[curBallIndex].blue = ballForRefrence.blue;
+		ball[curBallIndex].green = ballForRefrence.green;
+		ball[curBallIndex].red = ballForRefrence.red;
+		ball[curBallIndex].status = false;
 	}
-	draw();
+	ballForRefrence = ball[ballNum];
+	curBallIndex = ballNum;
+	ball[ballNum].red = 1;
+	ball[ballNum].blue = 1;
+	ball[ballNum].green = 1;
+	ball[ballNum].status = true;
 }
+
+int move_x(int i)
+{
+	int j;
+	for (j = 0; j<10; j++)
+	{
+		if (j != i) {
+			if (ball[i].x >= ball[j].x - 0.5 && ball[i].x <= ball[j].x + 0.5 
+				&& ball[i].z >= ball[j].z - 0.5 && ball[i].z <= ball[j].z + 0.5)
+				return 0;
+		}
+
+	}
+	return 1;
+}
+
+
+void idle() {
+	for (int i = 0; i < 10; i++) 
+	{
+		//if (ball[i].left == true && move_x(i) == 1 && ball[i].status == true && ball[i].z >= -1.0)	
+		if (ball[i].left == true && move_x(i) == 1 && ball[i].status == true  && ball[i].z>=-1.0 )
+				ball[i].z -= ball[i].speed;
+		else 
+		{
+			ball[i].left = false;
+			ball[i].z += 0.02;
+		}
+
+		if (ball[i].right == true && move_x(i) == 1 && ball[i].status == true  && ball[i].z <= 7.5)
+			ball[i].z += ball[i].speed;
+		else {
+			ball[i].right = false;
+			ball[i].z -= 0.02;
+		}
+
+		if (ball[i].up == true && move_x(i) == 1 && ball[i].status == true && ball[i].x <= 0.7 
+			)
+			ball[i].x += ball[i].speed;
+		else {
+			ball[i].up = false;
+			ball[i].x -= 0.02;
+		}
+
+		if (
+			ball[i].down == true && move_x(i) == 1 && ball[i].status == true && ball[i].x >= -8.2)
+			ball[i].x -= ball[i].speed;
+		else {
+			ball[i].down = false;
+			ball[i].x += 0.02;
+		}
+
+		//התנגשות עם הגבולות
+		if (((ball[i].z >= 0.9 && ball[i].z <= 1.9) && ball[i].x <= -4.7)
+		|| ((ball[i].z >= 4.8 && ball[i].z <= 5.8) && ball[i].x <= -4.7))
+			ball[i].down = false;
+
+		if (((ball[i].z >= 0.9 && ball[i].z <= 1.9) && ball[i].x >= -2.8))
+			ball[i].up = false;
+
+		if (((ball[i].x <= -4.6 && ball[i].x >= -8.1) && ball[i].z >= 0.9 && ball[i].z <= 1.0)
+		|| ((ball[i].x <= 0.7 && ball[i].x >= -2.8) && ball[i].z >= 0.9 && ball[i].z <= 1.0)
+		|| ((ball[i].x <= -4.6 && ball[i].x >= -8.1) && ball[i].z >= 4.9 && ball[i].z <= 5.0))
+			ball[i].right = false;
+
+		if (((ball[i].x <= -4.6 && ball[i].x >= -8.1) && ball[i].z <= 1.9 && ball[i].z >= 1.8)
+			|| ((ball[i].x <= 0.7 && ball[i].x >= -2.8) && ball[i].z <= 1.9 && ball[i].z >= 1.8)
+			|| ((ball[i].x <= -4.6 && ball[i].x >= -8.1) && ball[i].z <= 5.9 && ball[i].z >= 5.8))
+			ball[i].left = false;
+
+		//אם כדור בחור אדום
+		if (ball[i].x >= -0.5 && ball[i].x <= 0.4 && ball[i].z >= -1.3 && ball[i].z <= 0.6)
+		{
+			ball[i].status = false;
+			ball[i].z = 1000;
+			myScore -= 10;
+		}
+
+		//אם כדור בחור שחור
+		if (ball[i].x >= -2.5 && ball[i].x <= -1.5 && ball[i].z >= 5.8 && ball[i].z <= 6.8)
+		{
+			ball[i].status = false;
+			myScore += 15;
+			initBallParams();
+		}
+
+		if (myScore >= 50)
+			exit(1);
+	}
+
+	//draw();
+	glutPostRedisplay();
+}
+
 void init()
 {
 	glMatrixMode(GL_PROJECTION);
@@ -318,45 +421,118 @@ void init()
 	GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_ambdif);	// set both amb and diff components
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);		// set specular
+	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);			// set specular
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);		// set shininess
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);		// set light "position", in this case direction
-	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);		// active material changes by glColor3f(..)
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);			// set light "position", in this case direction
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);			// status material changes by glColor3f(..)
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_DEPTH_TEST);
+
+
+
 }
+
+void keyboard(unsigned char key, int x, int y)
+{
+
+	if (key == 02) exit(1);
+	//changing rotation keystroks and adding new one
+	if (key == CAMERA_UP) {
+		rot_z += 5;
+		rot_z %= 360;
+	}
+	if (key == CAMERA_RIGHT) {
+		rot_x += 5;
+		rot_z %= 360;
+	}
+
+	if (key == CAMERA_DOWN) {
+		rot_z -= 5;
+		rot_z %= 360;
+	}
+	if (key == CAMERA_LEFT) {
+		rot_x -= 5;
+		rot_x %= 360;
+	}
+
+	if (key >= '0' && key <= '9') {
+		changeBallControl(key - 48);
+	}
+	if (key == KEY_UP) {
+		for (int i = 0; i < 10; i++) {
+			if (ball[i].status == true)
+			{
+				ball[i].left = false;
+				ball[i].right = false;
+				ball[i].up = true;
+				ball[i].down = false;
+			}
+		}
+	}
+	if (key == KEY_DOWN) {
+		for (int i = 0; i < 10; i++) {
+			if (ball[i].status == true)
+			{
+
+				ball[i].left = false;
+				ball[i].right = false;
+				ball[i].up = false;
+				ball[i].down = true;
+			}
+		}
+	}
+	if (key == KEY_LEFT) {
+		for (int i = 0; i < 10; i++) {
+			if (ball[i].status == true)
+			{
+				ball[i].left = true;
+				ball[i].right = false;
+				ball[i].up = false;
+				ball[i].down = false;
+
+
+			}
+		}
+	}
+	if (key == KEY_RIGHT) {
+
+		for (int i = 0; i < 10; i++) {
+
+			ball[i].left = false;
+			ball[i].right = true;
+			ball[i].up = false;
+			ball[i].down = false;
+		}
+	}
+
+	if (key == 'm') {
+
+		for (int i = 0; i < 10; i++) {
+
+			ball[i].left = false;
+			ball[i].right = false;
+			ball[i].up = false;
+			ball[i].down = false;
+		}
+	}
+}
+//glutPostRedisplay();
+
+//draw();
+
 int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);	// RGB display, double-buffered, with Z-Buffer
-	glutInitWindowSize(500, 500);					// 500 x 500 pixels
+	glutInitWindowSize(1366, 768);					// 500 x 500 pixels
 	glutCreateWindow("3D");
-	glutDisplayFunc(draw);
-	// Set the display function
-	glutKeyboardFunc(keyboard);					// Set the keyboard function
-	our_balls[0].z = 2;
-	our_balls[0].red = 0.58; our_balls[0].green = 0; our_balls[0].blue = 0.83;
-	our_balls[1].z = 3;
-	our_balls[1].red = 0.64; our_balls[1].green = 0.16; our_balls[1].blue = 0.16;
-	our_balls[2].z = 6;
-	our_balls[2].red = 0.16; our_balls[2].green = 0.36; our_balls[2].blue = 0.8;
-	our_balls[3].z = 5; our_balls[3].x = -5;
-	our_balls[3].red = 0.9; our_balls[3].green = 0.9; our_balls[3].blue = 0.9;
-	our_balls[4].z = 4.8; our_balls[4].x = 5;
-	our_balls[4].red = 0.31; our_balls[4].green = 0.58; our_balls[4].blue = 0.80;
-	our_balls[5].z = 2.5; our_balls[5].x = 4;
-	our_balls[5].red = 0.51; our_balls[5].green = 0.51; our_balls[5].blue = 0.51;
-	our_balls[6].z = 3; our_balls[6].x = -4;
-	our_balls[6].red = 0.51; our_balls[6].green = 0.51; our_balls[6].blue = 0.51;
-	our_balls[7].z = 5; our_balls[7].x = -4.3;
-	our_balls[7].red = 1; our_balls[7].green = 0.5; our_balls[7].blue = 0.0;
-	our_balls[8].z = 6.5; our_balls[8].x = -7;
-	our_balls[8].red = 0.64; our_balls[8].green = 0.16; our_balls[8].blue = 0.16;
-	our_balls[9].z = 1; our_balls[9].x = -8;
-	our_balls[9].red = 0.58; our_balls[9].green = 0; our_balls[9].blue = 0.83;
-	init();
+	glutDisplayFunc(draw);// Set the display function
+	glutKeyboardFunc(keyboard);// Set the keyboard function
 	glutIdleFunc(idle);
-	glutMainLoop();							// Start the main event loop
+	initBallParams();
+
+	init();
+	glutMainLoop();// Start the main event loop
 }
