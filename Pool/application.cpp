@@ -272,7 +272,7 @@ void draw()
 	glTranslatef(xt, yt, zt + 4);
 	border3();
 	glTranslatef(xt + 5, yt, zt - 2);
-	border3();
+	//border3();
 	//black circle
 
 	glTranslatef(2, 0.1, 3);
@@ -408,6 +408,23 @@ void idle() {
 				ball[i].down = false;
 				ball[i].x += 0.02;
 			}
+			if (((ball[i].z >= 0.9 && ball[i].z <= 1.9) && ball[i].x <= -4.7)
+				|| ((ball[i].z >= 4.8 && ball[i].z <= 5.8) && ball[i].x <= -4.7))
+				ball[i].down = false;
+
+			if (((ball[i].z >= 0.9 && ball[i].z <= 1.9) && ball[i].x >= -2.8))
+				ball[i].up = false;
+
+			if (((ball[i].x <= -4.6 && ball[i].x >= -8.1) && ball[i].z >= 0.9 && ball[i].z <= 1.0)
+				|| ((ball[i].x <= 0.7 && ball[i].x >= -2.8) && ball[i].z >= 0.9 && ball[i].z <= 1.0)
+				|| ((ball[i].x <= -4.6 && ball[i].x >= -8.1) && ball[i].z >= 4.9 && ball[i].z <= 5.0))
+				ball[i].right = false;
+
+			if (((ball[i].x <= -4.6 && ball[i].x >= -8.1) && ball[i].z <= 1.9 && ball[i].z >= 1.8)
+				|| ((ball[i].x <= 0.7 && ball[i].x >= -2.8) && ball[i].z <= 1.9 && ball[i].z >= 1.8)
+				|| ((ball[i].x <= -4.6 && ball[i].x >= -8.1) && ball[i].z <= 5.9 && ball[i].z >= 5.8))
+				ball[i].left = false;
+
 			if (ball[i].circularMotionIsActive == true) {
 				if (angle < 2 * M_PI && checkCollision(i) == 1) {
 					ball[i].x = originX + cos(angle)*radius;
